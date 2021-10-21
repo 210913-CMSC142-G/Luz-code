@@ -1,3 +1,7 @@
+/**
+ * Submitted by: Luz Dungo
+ **/
+
 import java.util.*;
 import java.io.*;
 import java.math.*;
