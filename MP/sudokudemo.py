@@ -11,7 +11,7 @@ from time import perf_counter
 from constraint import *
 import numpy
 
-## Run using 'python sudokudemo.py <name of txt file> <method>'
+## Run using 'python sudokudemo.py demo1.txt'
 
 #################################################################
 #                       STOCHASTIC SEARCH                       #
@@ -163,7 +163,7 @@ def solver_s(size = 9):
         lowest = lowest_
         if m > 40:
             print("Local minimum")
-            solver_s()
+            # solver_s()
             exit()
         
         # take top 10 (lower heuristic values)
