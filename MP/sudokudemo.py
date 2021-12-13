@@ -101,7 +101,7 @@ def generate_board_s(original_board, size, fixed):
                 del choices[i][index]
     return board
 
-# Solves the sudoku puzzle
+# Solves the sudoku puzzle using stochastic search
 def solver_s(size = 9):
     """
     args: number of rows or columns
@@ -189,27 +189,57 @@ def solver_s(size = 9):
 
 ############# BACKTRACKING
 
+# Solves the sudoku puzzle using backtracking
 def solve_b(bo):
+    """
+    args: board
+    returns: Sudoku solution
+    return type: list
+    description:
+        * Find empty cell, given the board. (If no empty cells
+          then a solution is found)
+        * Creates problem instance, sudoku = Problem()
+        * Adds sudoku input and their indices as variables
+        * Adds constraints to the problem
+            1. No two number in a row should be the same
+            2. No two numbers in a column should be the same
+            3. No two numbers in a 3x3 box shold be the same
+        * Returns the solution
+    """
+    # Find empty cell
+    # base case
     find = find_empty_b(bo)
     if not find:
         return True
     else:
         row, col = find
+    
+    # puts values 1-9 to board if number is a vlid solution
     for i in range(1, 10):
         if valid_b(bo, i, (row, col)):
             bo[row][col] = i
             if solve_b(bo):
                 return True
+            # resets the value if it is no longer valid
             bo[row][col] = 0
     return False
 
 def valid_b(bo, num, pos):
+    """
+    args: board, number (number we inserted in the board),
+          position
+    returns: False (if there is a duplicate)
+             True (if there is no duplicate)
+    """
+    # checks row if no same values
     for i in range(len(bo[0])):
         if bo[pos[0]][i] == num and pos[1] != i:
             return False
+    # checks column if no same values
     for i in range(len(bo)):
         if bo[i][pos[1]] == num and pos[0] != i:
             return False
+    # checks 3x3 box if no same values
     box_x = pos[1] // 3
     box_y = pos[0] // 3
     for i in range(box_y * 3, box_y * 3 + 3):
@@ -218,7 +248,11 @@ def valid_b(bo, num, pos):
                 return False
     return True
 
+# Print 9x9 board
 def print_board_b(bo):
+    """
+    args: board
+    """
     for i in range(len(bo)):
         if i % 3 == 0:
             if i == 0:
@@ -234,7 +268,13 @@ def print_board_b(bo):
                 print(str(bo[i][j]), end=" ")
     print(" ┖─────────────────────────────┚")
 
+# Finds empty cell in a board
 def find_empty_b(bo):
+    """
+    args: board
+    returns: position of empty cell (for cell with 0 placeholder)
+             None (if there are no empty cells)
+    """
     for i in range(len(bo)):
         for j in range(len(bo[0])):
             if bo[i][j] == 0:
@@ -254,7 +294,7 @@ def dataNormalize_c(data):
         sudoku.append(sudoku_nums[step: step + 9])
     print_board_b(sudoku)
 
-# Solves the sudoku puzzle
+# Solves the sudoku puzzle using constraint programming
 def sudoku_solve_c():
     """
     args: None
@@ -328,6 +368,7 @@ def sudoku_solve_c():
 ############# MAIN
 if __name__ == "__main__":
     if len(sys.argv) > 1:
+        # reads the puzzle from file
         if len(sys.argv) > 1:
             fileName = sys.argv[1].upper()
         else:
