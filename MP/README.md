@@ -1,8 +1,18 @@
 # Comparative Analysis on Solving a Sudoku Puzzle using 3 Different Algorithms
 
+## **How to run demo**
+
+- **NOTE:** This uses python3 and certain libraries need to be installed
+- Download `sudokudemo.py` and `demo1.txt`
+- Run using
+
+```
+python sudokudemo.py demo1.txt
+```
+
 ## **What is a Sudoku Puzzle?**
 
-A Sudoku is a number puzzle in a 9x9 grid that uses the numbers 1 to 9, with some grid squares already filled in, and the goal is to fill in the remaining blank squares with a number, such that every number is unique in each row, column, and 3x3 subgrid.
+A _Sudoku_ is a number puzzle in a 9x9 grid that uses the numbers 1 to 9, with some grid squares already filled in, and the goal is to fill in the remaining blank squares with a number, such that every number is unique in each row, column, and 3x3 subgrid.
 
 <img src="https://www.rd.com/wp-content/uploads/2020/12/Sudoku3.jpg" alt="This is a Sudoku Puzzle" width="200">
 
