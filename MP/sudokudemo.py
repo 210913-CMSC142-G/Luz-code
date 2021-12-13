@@ -1,16 +1,25 @@
+# A Compilation of 3 Algorithms to Solve Sudoku
+# Submitted by: Luz Dungo (CS 142 - G)
+
+# Libraries
 from operator import index
 from random import choices, randint
 from math import sqrt
 import sys
 from functools import reduce
+from time import perf_counter
 from constraint import *
 import numpy
 
 ## Run using 'python sudokudemo.py <name of txt file> <method>'
 
+## TODO: include comments
+## TODO: make GUI
+## TODO: display all solutions in constraint programming
+
 ############# STOCHASTIC SEARCH
 
-GENERATION_SIZE = 50
+GENERATION_SIZE = 10
 BRANCHING_FACTOR = 4
 
 def heuristic_s(board, gridsize = 9, blocksize = 3):
@@ -97,7 +106,7 @@ def solver_s(size = 9):
         else:
             m = 1
         lowest = lowest_
-        if m > 200:
+        if m > 40:
             print("Local minimum")
             solver_s()
             exit()
@@ -105,9 +114,6 @@ def solver_s(size = 9):
         if boards[0][0] == 0:
             solved = True
             solution = boards[0][1]
-            print("")
-            print("")
-            print("Solution")
             print_board_b(solution)
         else:
             successors = []
@@ -152,15 +158,19 @@ def valid_b(bo, num, pos):
 
 def print_board_b(bo):
     for i in range(len(bo)):
-        if i % 3 == 0 and i != 0:
-            print ("- - - - - - - - - - - - - ")
-        for j in range(len(bo[0])):
-            if j % 3 == 0 and j != 0:
-                print(" | ", end="")
-            if j == 8:
-                print(bo[i][j])
+        if i % 3 == 0:
+            if i == 0:
+                print (" ┎─────────────────────────────┒")
             else:
-                print(str(bo[i][j]) + " ", end="")
+                print(" ┠─────────────────────────────┨")
+        for j in range(len(bo[0])):
+            if j % 3 == 0:
+                print(" ┃ ", end=" ")
+            if j == 8:
+                print(bo[i][j], " ┃")
+            else:
+                print(str(bo[i][j]), end=" ")
+    print(" ┖─────────────────────────────┚")
 
 def find_empty_b(bo):
     for i in range(len(bo)):
@@ -170,41 +180,85 @@ def find_empty_b(bo):
     return None
 
 ############# CONSTRAINT PROGRAMMING
+# Normalizes sudoku puzzle
 def dataNormalize_c(data):
+    """
+    args: data; output from sudoku_solve
+    returns: Normalized output of input
+    """
     sudoku_nums = [ eachPos[1] for eachPos in sorted( data[0].items() ) ]
     sudoku = []
     for step in range(0, 81, 9):
         sudoku.append(sudoku_nums[step: step + 9])
     print_board_b(sudoku)
 
+# Solves the sudoku puzzle
 def sudoku_solve_c():
+    """
+    args: None
+    returns: Sudoku solution
+    return type: list
+    description:
+        * It reads sudoku puzzle via input text file.
+        * Creates problem instance, sudoku = Problem()
+        * Adds sudoku input and their indices as variables
+        * Adds constraints to the problem
+            1. No two number in a row should be the same
+            2. No two numbers in a column should be the same
+            3. No two numbers in a 3x3 box shold be the same
+        * Returns teh solution
+    """
+    # reads the puzzle from file
     if len(sys.argv) > 1:
         fileName = sys.argv[1].upper()
     puzzleNums = open(fileName).read()
+    # stores the numbers in a list. Ex: [1, 2, 9, 0, 3, ...]
     puzzleNums = [ int (eachNum) for eachNum in puzzleNums.split() ]
+    ## Problem instance created.
+    ## Recursive backtracking is used here    
     sudoku = Problem( RecursiveBacktrackingSolver() )
+    ## List of 9x9 sudoku puzzle indices. Ex: [(0, 0), (0, 1), ... , (9, 9)]
     sudokuIndex = [ (row, col) for row in range(9) for col in range(9) ]
+    # adding variables to the sudoku instance
     for eachIndex, eachNum in zip(sudokuIndex, puzzleNums):
+        # if empty location is found, its range is set to 1-10
         if eachNum == 0:
             sudoku.addVariable(eachIndex, range(1, 10))
+        # if not an empty location, its value is assigned
         else:
             sudoku.addVariable(eachIndex, [eachNum])
+    
+    ## Constraints for each row and column
+    # counting from 0-9 (number of rows/columns)
     var = 0
     for aCount in range(9):
+        ## A list of locations present in a row
         rowIndices = [ (var, col) for col in range(9) ]
+        ## Adding constraint
+        # no two numbers in a row should be the same
         sudoku.addConstraint( AllDifferentConstraint(), rowIndices )
+        ## A list of locations present in a column
         colIndices = [ (row, var) for row in range(9) ]
+        ## Adding constraint
+        # no two numbers in a column should be the same
         sudoku.addConstraint( AllDifferentConstraint(), colIndices )
         var += 1
+    
+    ## Constraints for each block (3x3) of the board
+    # finding all boxes in sudoku board (9 in this case)
     rowStep = 0
     colStep = 0
     while rowStep < 9:
         colStep = 0
         while colStep < 9:
+            ## List of locations present in a box
             boxIndices = [ (row, col) for row in range(rowStep, rowStep + 3) for col in range(colStep, colStep + 3) ]
+            ## Adding constraint
+            # no two numbers in a box should be the same
             sudoku.addConstraint( AllDifferentConstraint(), boxIndices )
             colStep += 3
         rowStep += 3
+    # return the solution
     return sudoku.getSolutions()
 
 
@@ -212,33 +266,39 @@ def sudoku_solve_c():
 ############# MAIN
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        if len(sys.argv) > 2:
-            method = sys.argv[2].upper()
-            if method == "BAC":
-                if len(sys.argv) > 1:
-                    fileName = sys.argv[1].upper()
-                else:
-                    print("No input puzzle given")
-                    exit()
-                board = open(fileName).read()
-                board = [ int (i) for i in board.split() ]
-                board = [board[i * 9: (i + 1) * 9] for i in range((len(board) + 9 - 1) // 9)]
-                print("Backtracking")
-                if solve_b(board):
-                    print_board_b(board)
-                else:
-                    print("No solution found")
-                    exit()
-            elif method == "STO":
-                print("Stochastic Search")
-                solver_s()
-            elif method == "CON":
-                print("Constraint Programming")
-                dataNormalize_c( sudoku_solve_c() )
-            else:
-                print("Invalid method. Valid inputs are BAC, CON, or STO")
+        if len(sys.argv) > 1:
+            fileName = sys.argv[1].upper()
         else:
-            print("No method specified")
+            print("No input puzzle given")
             exit()
+        timeA1 = perf_counter()
+        board = open(fileName).read()
+        board = [ int (i) for i in board.split() ]
+        board = [board[i * 9: (i + 1) * 9] for i in range((len(board) + 9 - 1) // 9)]
+        print("\n          BACKTRACKING")
+        if solve_b(board):
+            print_board_b(board)
+        else:
+            print("No solution found")
+            exit()
+        timeA2 = perf_counter()
+        print(f'TIME TAKEN : {round(timeA2-timeA1,3)} SECONDS')
+
+        print("---------------------------------")
+
+        print("\n\tSTOCHASTIC SEARCH")
+        timeB1 = perf_counter()
+        solver_s()
+        timeB2 = perf_counter()
+        print(f'TIME TAKEN : {round(timeB2-timeB1,3)} SECONDS')
+
+        print("---------------------------------")
+        
+        print("\n     CONSTRAINT PROGRAMMING")
+        timeC1 = perf_counter()
+        dataNormalize_c( sudoku_solve_c() )
+        timeC2 = perf_counter()
+        print(f'TIME TAKEN : {round(timeC2-timeC1,3)} SECONDS')
+        
     else:
         print("No input puzzle given")
