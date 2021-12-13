@@ -13,11 +13,9 @@ import numpy
 
 ## Run using 'python sudokudemo.py <name of txt file> <method>'
 
-## TODO: include comments
-## TODO: make GUI
-## TODO: display all solutions in constraint programming
-
-############# STOCHASTIC SEARCH
+#################################################################
+#                       STOCHASTIC SEARCH                       #
+#################################################################
 
 GENERATION_SIZE = 10
 BRANCHING_FACTOR = 4
@@ -47,7 +45,8 @@ def heuristic_s(board, gridsize = 9, blocksize = 3):
             squareY = i // blocksize
             for n in range(blocksize):
                 for m in range(blocksize):
-                    if not (blocksize * squareX + m == j or blocksize * squareY + n == i) and board[blocksize * squareY + n][blocksize * squareX + m] == val:
+                    if not (blocksize * squareX + m == j or blocksize * squareY + n == i)\
+                        and board[blocksize * squareY + n][blocksize * squareX + m] == val:
                         collisions += 1
     return collisions
 
@@ -72,7 +71,8 @@ def generate_successor_s(board, size, fixed):
     returns: list of possible values of row
     """
     # chooses row with random index
-    choices = [[y for y in x[1] if (x[0], y) not in fixed] for x in enumerate([list(range(size)) for x in range(size)])]
+    choices = [[y for y in x[1] if (x[0], y) not in fixed] \
+              for x in enumerate([list(range(size)) for x in range(size)])]
     row = randint(0, size - 1)
     index1 = randint(0, len(choices[row]) - 1)
     choice1 = choices[row][index1]
@@ -187,7 +187,9 @@ def solver_s(size = 9):
     return solution
     
 
-############# BACKTRACKING
+#################################################################
+#                        BACKTRACKING                           #
+#################################################################
 
 # Solves the sudoku puzzle using backtracking
 def solve_b(bo):
@@ -281,7 +283,10 @@ def find_empty_b(bo):
                 return (i, j)
     return None
 
-############# CONSTRAINT PROGRAMMING
+#################################################################
+#                    CONSTRAINT PROGRAMMING                     #
+#################################################################
+
 # Normalizes sudoku puzzle
 def dataNormalize_c(data):
     """
@@ -354,7 +359,8 @@ def sudoku_solve_c():
         colStep = 0
         while colStep < 9:
             ## List of locations present in a box
-            boxIndices = [ (row, col) for row in range(rowStep, rowStep + 3) for col in range(colStep, colStep + 3) ]
+            boxIndices = [ (row, col) for row in range(rowStep, rowStep + 3) \
+                           for col in range(colStep, colStep + 3) ]
             ## Adding constraint
             # no two numbers in a box should be the same
             sudoku.addConstraint( AllDifferentConstraint(), boxIndices )
@@ -365,7 +371,10 @@ def sudoku_solve_c():
 
 
 
-############# MAIN
+#################################################################
+#                             MAIN                              #
+#################################################################
+
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         # reads the puzzle from file
@@ -378,6 +387,11 @@ if __name__ == "__main__":
         board = open(fileName).read()
         board = [ int (i) for i in board.split() ]
         board = [board[i * 9: (i + 1) * 9] for i in range((len(board) + 9 - 1) // 9)]
+        print("\n          ORIGINAL BOARD")
+        print_board_b(board)
+
+        print("---------------------------------")
+
         print("\n          BACKTRACKING")
         if solve_b(board):
             print_board_b(board)
@@ -388,20 +402,20 @@ if __name__ == "__main__":
         print(f'TIME TAKEN : {round(timeA2-timeA1,3)} SECONDS')
 
         print("---------------------------------")
-
-        print("\n\tSTOCHASTIC SEARCH")
-        timeB1 = perf_counter()
-        solver_s()
-        timeB2 = perf_counter()
-        print(f'TIME TAKEN : {round(timeB2-timeB1,3)} SECONDS')
-
-        print("---------------------------------")
         
         print("\n     CONSTRAINT PROGRAMMING")
         timeC1 = perf_counter()
         dataNormalize_c( sudoku_solve_c() )
         timeC2 = perf_counter()
         print(f'TIME TAKEN : {round(timeC2-timeC1,3)} SECONDS')
+
+        print("---------------------------------")
+
+        print("\n\tSTOCHASTIC SEARCH")
+        timeB1 = perf_counter()
+        solver_s()
+        timeB2 = perf_counter()
+        print(f'TIME TAKEN : {round(timeB2-timeB1,3)} SECONDS')
         
     else:
         print("No input puzzle given")
