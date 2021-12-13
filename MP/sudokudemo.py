@@ -302,3 +302,14 @@ if __name__ == "__main__":
         
     else:
         print("No input puzzle given")
+
+
+
+
+"""
+REFERENCES:
+    * Overall code: https://fse.studenttheses.ub.rug.nl/22745/1/bMATH_2020_HoexumES.pdf.pdf
+    * Backtracking: https://www.techwithtim.net/tutorials/python-programming/sudoku-solver-backtracking/
+    * Stochastic Search: https://github.com/ananthamapod/Sudoku
+    * Constraint Programming: https://gist.github.com/ksurya/3940679
+"""
