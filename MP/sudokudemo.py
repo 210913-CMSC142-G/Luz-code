@@ -22,17 +22,27 @@ import numpy
 GENERATION_SIZE = 10
 BRANCHING_FACTOR = 4
 
+# Checks for collisions
 def heuristic_s(board, gridsize = 9, blocksize = 3):
+    """
+    args: board, gridsize, blocksize
+    returns: number of collisions
+    """
     collisions = 0
+    # runs collision check for each cell
     for i in range(gridsize):
         for j in range(gridsize):
             val = board[i][j]
+            # checks row for collisions
             for n in range(gridsize):
                 if n != i and board[n][j] == val:
                     collisions += 1
+            # checks column for collisions
             for m in range(gridsize):
                 if m != j and board[i][m] == val:
                     collisions += 1
+            
+            # checks 3x3 block for collisions
             squareX = j // blocksize
             squareY = i // blocksize
             for n in range(blocksize):
@@ -41,7 +51,12 @@ def heuristic_s(board, gridsize = 9, blocksize = 3):
                         collisions += 1
     return collisions
 
+# Makes copy of board row
 def deepcopy_board_s(board):
+    """
+    args: board
+    returns: list of board rows with elements
+    """
     ret = []
     for row in board:
         ret_row = []
@@ -50,7 +65,13 @@ def deepcopy_board_s(board):
         ret.append(ret_row)
     return ret
 
+# Gets possible values of cells in a row
 def generate_successor_s(board, size, fixed):
+    """
+    args: board, size, fixed (initial numbers on the board)
+    returns: list of possible values of row
+    """
+    # chooses row with random index
     choices = [[y for y in x[1] if (x[0], y) not in fixed] for x in enumerate([list(range(size)) for x in range(size)])]
     row = randint(0, size - 1)
     index1 = randint(0, len(choices[row]) - 1)
@@ -60,10 +81,16 @@ def generate_successor_s(board, size, fixed):
     choice2 = choices[row][index2]
     del choices[row][index2]
     ret = deepcopy_board_s(board)
+    # assign new values to selected cells
     ret[row][choice2], ret[row][choice1] = ret[row][choice1], ret[row][choice2]
     return ret
 
+# Generates a board from original board
 def generate_board_s(original_board, size, fixed):
+    """
+    args: original board, size, fixed (initial numbers on the board)
+    returns: another board
+    """
     board = deepcopy_board_s(original_board)
     choices = [[y for y in range(1, size + 1) if y not in x] for x in original_board]
     for i in range(size):
@@ -74,7 +101,26 @@ def generate_board_s(original_board, size, fixed):
                 del choices[i][index]
     return board
 
+# Solves the sudoku puzzle
 def solver_s(size = 9):
+    """
+    args: number of rows or columns
+    returns: Sudoku solution
+    description:
+        * It reads sudoku puzzle via input text file.
+        * A boards agenda with the successor boards of the original board is created.
+        * If the puzzle isn't solved yet, the the ff are done:
+            1. Boards agenda is sorted in ascendig order based on heuristic value
+            2. Boards agenda is truncated to the top 10 boards with lowest heuristic
+                value
+            3. First board in teh agenda is checked
+                * if the heuristic is 0, this board is returned as solution
+                * if heuristic is not 0, next generation of boards are generated
+                    and added to the agenda (4 successor boards are generated per
+                    board in the current generation)
+        * Returns the solution
+    """
+    # reads the puzzle from file
     if len(sys.argv) > 1:
         fileName = sys.argv[1].upper()
     else:
@@ -84,7 +130,9 @@ def solver_s(size = 9):
     board = [ int(i) for i in board.split() ]
     board = [board[i * 9: (i + 1) * 9] for i in range((len(board) + 9 - 1) // 9)]
     original_board = board
+
     fixed_values = set([])
+
     for i in range(size):
         for j in range(size):
             if original_board[i][j] != 0:
@@ -92,14 +140,21 @@ def solver_s(size = 9):
     solved = False
     solution = None
     boards = []
+    # generates initial set
     for i in range(GENERATION_SIZE):
         board = generate_board_s(original_board, size, fixed_values)
         boards.append(board)
+    
+    # resets boards list to take both heuristics and states
     boards = [(heuristic_s(board, gridsize=size, blocksize=int(sqrt(size))), board) for board in boards]
+    
     lowest = 0
     m = 1
     while not solved:
+        # order by heuristic value of boards
         boards.sort(key = lambda x: x[0])
+
+        # restart when stuck with a certain board
         lowest_ = boards[0][0]
         if lowest_ == lowest:
             m = m + 1
@@ -110,18 +165,25 @@ def solver_s(size = 9):
             print("Local minimum")
             solver_s()
             exit()
+        
+        # take top 10 (lower heuristic values)
         boards = boards[:GENERATION_SIZE]
+        # checks first board
         if boards[0][0] == 0:
+            # if heuristic is 0, set solved to true and set as solution
             solved = True
             solution = boards[0][1]
             print_board_b(solution)
         else:
+            # if heuristic is not 0, generate successors and loop
+            # Generates successor boards
             successors = []
             for board in boards:
                 for i in range(BRANCHING_FACTOR):
                     successors.append(generate_successor_s(board[1], size, fixed_values))
-                for s in successors:
-                    boards.append((heuristic_s(s, gridsize=size, blocksize=int(sqrt(size))), s))
+            # adds each successor to current list with heuristic value
+            for s in successors:
+                boards.append((heuristic_s(s, gridsize=size, blocksize=int(sqrt(size))), s))
     return solution
     
 
@@ -206,7 +268,7 @@ def sudoku_solve_c():
             1. No two number in a row should be the same
             2. No two numbers in a column should be the same
             3. No two numbers in a 3x3 box shold be the same
-        * Returns teh solution
+        * Returns the solution
     """
     # reads the puzzle from file
     if len(sys.argv) > 1:
